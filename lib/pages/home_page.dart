@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:retail_go/cart_model.dart';
 import 'package:retail_go/models/category_model.dart';
 import 'package:retail_go/models/product_model.dart';
 import 'package:retail_go/pages/cart_page.dart';
@@ -60,19 +62,38 @@ class _HomePageState extends State<HomePage> {
         title: const Text("All Products"),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CartPage(cart: cart),
-                ),
+          // Display cart icon with the number of items in the cart
+          Consumer<CartModel>(
+            builder: (context, cartModel, child) {
+              return IconButton(
+                icon: Icon(Icons.shopping_cart),
+                onPressed: () {
+                  // Navigate to the CartPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CartPage(),
+                    ),
+                  );
+                },
               );
-              // Navigate to cart screen (to be implemented)
             },
           ),
         ],
+        // actions: [
+        //   IconButton(
+        //     icon: Icon(Icons.shopping_cart),
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (context) => CartPage(cart: cart),
+        //         ),
+        //       );
+        //       // Navigate to cart screen (to be implemented)
+        //     },
+        //   ),
+        // ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   itemCount: products.length,
                   itemBuilder: (context, index) {
-                    return ProductCart(products[index],addToCart: addToCart,cart: cart,);
+                    return ProductCart(products[index]);
                   },
                 ),
               );

@@ -1,29 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:retail_go/models/product_model.dart';
+import 'package:provider/provider.dart';
+import 'package:retail_go/cart_model.dart';
+import 'package:retail_go/models/product_model.dart'; 
 
 class CartPage extends StatefulWidget {
-  final List<Product> cart;
-
-  CartPage({required this.cart});
-
   @override
   _CartPageState createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
+
   void removeFromCart(Product product) {
-    // print("this is product variant : ${product.variants.first}");
-    // setState(() {
-    //   widget.cart.remove(product);
-    // });
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   SnackBar(content: Text("Removed from cart: ${product.name}")),
-    // );
+    // Use Provider to remove the product from the cart
+    context.read<CartModel>().removeFromCart(product);
+
+    // Show a SnackBar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Removed from cart: ${product.name}")),
+    );
   }
 
   double calculateTotalPrice() {
     double total = 0.0;
-    for (var product in widget.cart) {
+    // Use Provider to access the cart
+    List<Product> cart = context.watch<CartModel>().cart;
+
+    for (var product in cart) {
       if (product.variants.isNotEmpty) {
         total += product.variants.first.price; // Use variant price if available
       } else {
@@ -39,53 +41,58 @@ class _CartPageState extends State<CartPage> {
       appBar: AppBar(
         title: Text("Cart"),
       ),
-      body: widget.cart.isEmpty
-          ? Center(child: Text("Your cart is empty."))
-          : ListView.builder(
-              itemCount: widget.cart.length,
-              itemBuilder: (context, index) {
-                Product product = widget.cart[index];
-                return Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    contentPadding: EdgeInsets.all(8.0),
-                    leading: product.featuredImage != null
-                        ? Image.network(product.featuredImage!,
-                            width: 50, fit: BoxFit.cover)
-                        : Container(
-                            color: Colors.grey[300],
-                            width: 50,
-                            child: Icon(Icons.image)),
-                    title: Text(product.name),
-                    subtitle: Text("No"),
-                    // subtitle: Text(
-                    //   product.firstVariant != null
-                    //       ? "\$${product.firstVariant!.price.toStringAsFixed(2)}"
-                    //       : "No Price Available",
-                    // ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.remove_circle_outline),
-                      onPressed: () => removeFromCart(product),
-                    ),
-                  ),
+      body: Consumer<CartModel>( // Use Consumer to listen to changes in the cart
+        builder: (context, cartModel, child) {
+          return cartModel.cart.isEmpty
+              ? Center(child: Text("Your cart is empty."))
+              : ListView.builder(
+                  itemCount: cartModel.cart.length,
+                  itemBuilder: (context, index) {
+                    Product product = cartModel.cart[index];
+                    return Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.all(8.0),
+                        leading: product.featuredImage != null
+                            ? Image.network(product.featuredImage!,
+                                width: 50, fit: BoxFit.cover)
+                            : Container(
+                                color: Colors.grey[300],
+                                width: 50,
+                                child: Icon(Icons.image)),
+                        title: Text(product.name),
+                        subtitle: Text(
+                          // Display price or a default message if price is unavailable
+                          product.variants.isNotEmpty
+                              ? "\$${product.variants.first.price.toStringAsFixed(2)}"
+                              : "No Price Available",
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.remove_circle_outline),
+                          onPressed: () => removeFromCart(product),
+                        ),
+                      ),
+                    );
+                  },
                 );
-              },
-            ),
+        },
+      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Display the total price using the Provider
             Text(
               "Total: \$${calculateTotalPrice().toStringAsFixed(2)}",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             ElevatedButton(
               onPressed: () {
-                // Proceed to checkout page (you can implement checkout logic here)
+                // Implement your checkout logic here
                 // Navigator.push(
                 //   context,
                 //   MaterialPageRoute(builder: (context) => CheckoutPage(cart: widget.cart)),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:provider/provider.dart';
+import 'package:retail_go/cart_model.dart';
 import 'package:retail_go/models/product_model.dart';
 import 'package:retail_go/services/product_service.dart';
 // import '../models/product_model.dart';
@@ -7,10 +9,9 @@ import 'package:retail_go/services/product_service.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productId;
-  final List<Product> cart;
+  // final List<Product> cart;
 
-  const ProductDetailPage(
-      {super.key, required this.productId, required this.cart});
+  const ProductDetailPage({super.key, required this.productId});
 
   @override
   _ProductDetailPageState createState() => _ProductDetailPageState();
@@ -25,27 +26,55 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     super.initState();
     futureProduct = ProductService().fetchProductDetails(widget.productId);
   }
+  //With Provider
+
   void addToCart(Product product, Variant variant) {
     Product cartItem = Product(
       productId: product.productId,
-      name: "${product.name} - ${variant.attributes.map((attr) => attr.value).join(', ')}",
+      name:
+          "${product.name} - ${variant.attributes.map((attr) => attr.value).join(', ')}",
       brand: product.brand,
       status: product.status,
       description: product.description,
-      featuredImage: variant.media.isNotEmpty ? variant.media.first.mediaUrl : product.featuredImage,
+      featuredImage: variant.media.isNotEmpty
+          ? variant.media.first.mediaUrl
+          : product.featuredImage,
       variants: [variant],
       discount: product.discount,
       basePrice: variant.price,
     );
 
-    setState(() {
-      widget.cart.add(cartItem);
-    });
+    // Use Provider to add to cart
+    context.read<CartModel>().addToCart(cartItem);
 
+    // Show a SnackBar to notify the user that the product has been added
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("${product.name} (${variant.attributes.map((attr) => attr.value).join(', ')}) added to cart")),
+      SnackBar(
+          content: Text(
+              "${product.name} (${variant.attributes.map((attr) => attr.value).join(', ')}) added to cart")),
     );
   }
+  // void addToCart(Product product, Variant variant) {
+  //   Product cartItem = Product(
+  //     productId: product.productId,
+  //     name: "${product.name} - ${variant.attributes.map((attr) => attr.value).join(', ')}",
+  //     brand: product.brand,
+  //     status: product.status,
+  //     description: product.description,
+  //     featuredImage: variant.media.isNotEmpty ? variant.media.first.mediaUrl : product.featuredImage,
+  //     variants: [variant],
+  //     discount: product.discount,
+  //     basePrice: variant.price,
+  //   );
+
+  //   setState(() {
+  //     widget.cart.add(cartItem);
+  //   });
+
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text("${product.name} (${variant.attributes.map((attr) => attr.value).join(', ')}) added to cart")),
+  //   );
+  // }
   // void addToCart(Product product, Variant variant) {
   //   Product cartItem = Product(
   //     productId: product.productId,
