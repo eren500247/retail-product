@@ -19,6 +19,46 @@ class ProductResponse {
   }
 }
 
+// class Product {
+//   final String productId;
+//   final String name;
+//   final String description;
+//   final String brand;
+//   final double discount;
+//   final String status;
+//   final double basePrice;
+//   final String? featuredImage;
+//   final List<Variant> variants;
+
+//   Product({
+//     required this.productId,
+//     required this.name,
+//     required this.description,
+//     required this.brand,
+//     required this.discount,
+//     required this.status,
+//     required this.basePrice,
+//     required this.featuredImage,
+//     required this.variants,
+//   });
+
+//   factory Product.fromJson(Map<String, dynamic> json) {
+//     return Product(
+//       productId: json["product_id"] ?? "",
+//       name: json["name"] ?? "Unknown Product",
+//       description: json["description"] ?? "No description available",
+//       brand: json["brand"] ?? "Unknown Brand",
+//       discount: double.tryParse(json["discount"].toString()) ?? 0.0,
+//       status: json["status"] ?? "unknown",
+//       basePrice: double.tryParse(json["base_price"].toString()) ?? 0.0,
+//       featuredImage: json["featured_image"] ?? "",
+//       variants: (json["variants"] as List?)
+//               ?.map((v) => Variant.fromJson(v))
+//               .toList() ??
+//           [],
+//     );
+//   }
+// }
 class Product {
   final String productId;
   final String name;
@@ -43,6 +83,19 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    // Handling variants correctly
+    List<Variant> variantsList = [];
+    
+    if (json["variants"] is List) {
+      variantsList =
+          (json["variants"] as List).map((v) => Variant.fromJson(v)).toList();
+    } else if (json["variants"] is Map) {
+      // If "variants" is an object, check if it's empty or contains valid data
+      if (json["variants"].isNotEmpty) {
+        variantsList.add(Variant.fromJson(json["variants"]));
+      }
+    }
+
     return Product(
       productId: json["product_id"] ?? "",
       name: json["name"] ?? "Unknown Product",
@@ -52,10 +105,7 @@ class Product {
       status: json["status"] ?? "unknown",
       basePrice: double.tryParse(json["base_price"].toString()) ?? 0.0,
       featuredImage: json["featured_image"] ?? "",
-      variants: (json["variants"] as List?)
-              ?.map((v) => Variant.fromJson(v))
-              .toList() ??
-          [],
+      variants: variantsList,
     );
   }
 }

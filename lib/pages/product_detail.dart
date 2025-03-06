@@ -7,8 +7,10 @@ import 'package:retail_go/services/product_service.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productId;
+  final List<Product> cart;
 
-  const ProductDetailPage({super.key, required this.productId});
+  const ProductDetailPage(
+      {super.key, required this.productId, required this.cart});
 
   @override
   _ProductDetailPageState createState() => _ProductDetailPageState();
@@ -23,6 +25,48 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     super.initState();
     futureProduct = ProductService().fetchProductDetails(widget.productId);
   }
+  void addToCart(Product product, Variant variant) {
+    Product cartItem = Product(
+      productId: product.productId,
+      name: "${product.name} - ${variant.attributes.map((attr) => attr.value).join(', ')}",
+      brand: product.brand,
+      status: product.status,
+      description: product.description,
+      featuredImage: variant.media.isNotEmpty ? variant.media.first.mediaUrl : product.featuredImage,
+      variants: [variant],
+      discount: product.discount,
+      basePrice: variant.price,
+    );
+
+    setState(() {
+      widget.cart.add(cartItem);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("${product.name} (${variant.attributes.map((attr) => attr.value).join(', ')}) added to cart")),
+    );
+  }
+  // void addToCart(Product product, Variant variant) {
+  //   Product cartItem = Product(
+  //     productId: product.productId,
+  //     name: "${product.name} - ${variant.attributes.map((attr) => attr.value).join(', ')}",
+  //     brand: product.brand,
+  //     status: product.status,
+  //     description: product.description,
+  //     featuredImage: variant.media.isNotEmpty ? variant.media.first.mediaUrl : null,
+  //     variants: [variant],
+  //     discount: 0.00,
+  //     basePrice: variant.price,
+  //   );
+
+  //   setState(() {
+  //     widget.cart.add(cartItem);
+  //   });
+
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text("${product.name} (${variant.attributes.map((attr) => attr.value).join(', ')}) added to cart")),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +124,40 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 Text(product.description,
                     style: const TextStyle(fontSize: 16, color: Colors.grey)),
                 const SizedBox(height: 20),
+
+                // Wrap(
+                //   spacing: 10,
+                //   children: List.generate(product.variants.length, (index) {
+                //     Variant variant = product.variants[index];
+                //     String? imageUrl = variant.media.isNotEmpty
+                //         ? variant.media.first.mediaUrl
+                //         : null;
+
+                //     return GestureDetector(
+                //       onTap: () {
+                //         setState(() {
+                //           selectedVariantIndex = index;
+                //         });
+                //       },
+                //       child: Container(
+                //         width: 50,
+                //         height: 50,
+                //         decoration: BoxDecoration(
+                //           border: Border.all(
+                //             color: selectedVariantIndex == index
+                //                 ? Colors.blue
+                //                 : Colors.grey,
+                //           ),
+                //           borderRadius: BorderRadius.circular(8),
+                //         ),
+                //         child: imageUrl != null
+                //             ? Image.network(imageUrl, fit: BoxFit.cover)
+                //             : const Icon(Icons.image, color: Colors.grey),
+                //       ),
+                //     );
+                //   }),
+                // ),
+                // const SizedBox(height: 10),
                 Wrap(
                   spacing: 10,
                   children: List.generate(product.variants.length, (index) {
@@ -119,6 +197,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 ...selectedVariant.attributes.map((attribute) {
                   return Text("${attribute.name}: ${attribute.value}");
                 }).toList(),
+                SizedBox(
+                  height: 20,
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => addToCart(product, selectedVariant),
+                    child: const Text("Add to Cart"),
+                  ),
+                ),
                 // Text("Attributes:",
                 //     style: const TextStyle(
                 //         fontSize: 18, fontWeight: FontWeight.bold)),

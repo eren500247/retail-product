@@ -51,23 +51,32 @@ import 'package:retail_go/models/product_model.dart';
 class ProductService {
   static const String baseUrl = "http://10.0.2.2:3000/api/products";
 
-  Future<List<Product>> fetchProducts() async {
+  Future<List<Product>> fetchProducts(
+      {String? category, String? searchQuery}) async {
     try {
-      final response = await http.get(Uri.parse(baseUrl));
+      // Construct query parameters dynamically
+      Map<String, String> queryParams = {};
+      if (category != null) queryParams["category"] = category;
+      if (searchQuery != null) queryParams["search_query"] = searchQuery;
 
-      print("API Response: ${response.body}"); // Debugging
+      // Build final URL with query parameters
+      Uri uri = Uri.parse(baseUrl).replace(
+          queryParameters: queryParams.isNotEmpty ? queryParams : null);
+
+      final response = await http.get(uri);
+
+      print("API Request URL: $uri"); // Debugging
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
 
-        // Ensure "data" is not null before parsing
         if (jsonData["data"] == null || jsonData["data"] is! List) {
           throw Exception("Invalid data format from API");
         }
 
-        final ProductResponse productResponse =
-            ProductResponse.fromJson(jsonData);
-        return productResponse.data;
+        return jsonData["data"]
+            .map<Product>((p) => Product.fromJson(p))
+            .toList();
       } else {
         throw Exception("Failed to load products: ${response.statusCode}");
       }
@@ -76,6 +85,32 @@ class ProductService {
       throw Exception("Error: $e");
     }
   }
+
+  // Future<List<Product>> fetchProducts() async {
+  //   try {
+  //     final response = await http.get(Uri.parse(baseUrl));
+
+  //     print("API Response: ${response.body}"); // Debugging
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> jsonData = json.decode(response.body);
+
+  //       // Ensure "data" is not null before parsing
+  //       if (jsonData["data"] == null || jsonData["data"] is! List) {
+  //         throw Exception("Invalid data format from API");
+  //       }
+
+  //       final ProductResponse productResponse =
+  //           ProductResponse.fromJson(jsonData);
+  //       return productResponse.data;
+  //     } else {
+  //       throw Exception("Failed to load products: ${response.statusCode}");
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching products: $e");
+  //     throw Exception("Error: $e");
+  //   }
+  // }
 
   Future<List<Product>> fetchProductsByCategory(String category) async {
     final response = await http

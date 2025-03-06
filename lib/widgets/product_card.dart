@@ -5,14 +5,25 @@ import 'package:retail_go/models/product_model.dart';
 import 'package:retail_go/pages/product_detail.dart';
 
 class ProductCart extends StatelessWidget {
-  const ProductCart(this.product, {super.key});
+  const ProductCart(this.product, {super.key, required this.addToCart,required this.cart});
   final Product product;
+  final Function(Product) addToCart;
+  final List<Product> cart;
 
   @override
   Widget build(BuildContext context) {
+    double productPrice = product.variants.isNotEmpty
+        ? product.variants.first.price
+        : product.basePrice;
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>ProductDetailPage(productId: product.productId)));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ProductDetailPage(
+                      productId: product.productId,
+                      cart: [],
+                    )));
         // Handle product tap (e.g., navigate to detail page)
       },
       child: Card(
@@ -25,19 +36,21 @@ class ProductCart extends StatelessWidget {
           children: [
             // Product Image
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
               child: product.featuredImage != null
                   ? Image.network(
                       product.featuredImage!,
                       width: double.infinity,
-                      height: 150,
+                      height: 100,
                       fit: BoxFit.cover,
                     )
                   : Container(
                       width: double.infinity,
-                      height: 150,
+                      height: 50,
                       color: Colors.grey[300],
-                      child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                      child: const Icon(Icons.image_not_supported,
+                          size: 50, color: Colors.grey),
                     ),
             ),
 
@@ -51,12 +64,16 @@ class ProductCart extends StatelessWidget {
                     product.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "\$${product.basePrice.toStringAsFixed(2)}",
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green),
+                    "\$${productPrice.toStringAsFixed(2)}",
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -65,9 +82,16 @@ class ProductCart extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         "${product.discount.toStringAsFixed(0)}% Off",
-                        style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold),
                       ),
                     ],
+                  ),
+                  ElevatedButton(
+                    onPressed: () => addToCart(product),
+                    child: Text("Add to Cart"),
                   ),
                 ],
               ),
